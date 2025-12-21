@@ -1,0 +1,39 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example.uiautomator'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId 'com.example.uiautomator'
+        minSdk 24
+        targetSdk 33
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    buildTypes {
+        debug {}
+        release {}
+    }
+}
+
+dependencies {
+    // UiAutomator
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
+
+    // AndroidX test runner and rules
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
+
+    // AndroidJUnit4
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+
+    // JUnit 4
+    androidTestImplementation 'junit:junit:4.13.2'
+    testImplementation 'junit:junit:4.13.2'
+
+    // Optional annotations
+    androidTestImplementation 'androidx.annotation:annotation:1.6.0'
+}
