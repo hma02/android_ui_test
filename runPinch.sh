@@ -1,7 +1,19 @@
-# example: open the photo gallery app on an samsung phone first, then try issue this adb command to phone and see zoom out effect
-/usr/bin/adb shell am instrument -w -r \
+# /usr/bin/adb -s 192.168.1.111:5555 shell am instrument -w   -r -e debug false -e class com.example.uiautomator.PinchTest   com.example.uiautomator.test/androidx.test.runner.AndroidJUnitRunner
+
+# /usr/bin/adb -s 192.168.1.111:5555 shell am instrument -w \
+#   -r -e debug false \
+#   -e class com.example.uiautomator.PinchTest \
+#   -e resId "me.underw.hp:id/hl_mbmap_mapview" \
+#   com.example.uiautomator.test/androidx.test.runner.AndroidJUnitRunner
+# am instrument -w -r -e action pinch -e class com.example.uiautomator.UiActionTest -e resId "{resource_id}" com.example.uiautomator.test/androidx.test.runner.AndroidJUnitRunner
+
+  /usr/bin/adb -s 192.168.1.127:5555 shell am instrument -w -r \
   -e action pinch \
-  -e speed 50 \
-  -e resId "com.sec.android.gallery3d:id/photo_view" \
+  -e resId "com.nianticlabs.pokemongo:id/unitySurfaceView" \
   com.example.uiautomator.test/androidx.test.runner.AndroidJUnitRunner
 
+
+  #   /usr/bin/adb -s 192.168.1.127:5555 shell am instrument -w -r \
+  # -e action pinch \
+  # -e resId  "android:id/android.widget.LinearLayout" \
+  # com.example.uiautomator.test/androidx.test.runner.AndroidJUnitRunner

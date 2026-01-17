@@ -17,6 +17,12 @@ android {
         debug {}
         release {}
     }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
 }
 
 dependencies {

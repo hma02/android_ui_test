@@ -83,23 +83,25 @@ public class UiActionTest {
     }
 // ---------------- QUICK TAP ----------------
     private void doQuickTap() {
-        int x = parseInt(args.getString("x"), -1);
-        int y = parseInt(args.getString("y"), -1);
+    int x = parseInt(args.getString("x"), -1);
+    int y = parseInt(args.getString("y"), -1);
 
-        if (x < 0 || y < 0) {
-            log("ERROR: x/y not provided for quick_tap");
-            return;
-        }
+    if (x < 0 || y < 0) {
+        log("ERROR: x/y not provided for quick_tap");
+        return;
+    }
 
-        int taps = 8;                 // 8 taps
-        int intervalMs = 250;         // 4 taps per second (1000 / 4)
+    // NEW: number of taps (default = 8)
+    int taps = parseInt(args.getString("n"), 16);
 
-        for (int i = 0; i < taps; i++) {
-            device.click(x, y);
-            try {
-                Thread.sleep(intervalMs);
-            } catch (InterruptedException ignored) {}
-        }
+    int intervalMs = 250;         // 4 taps per second
+
+    for (int i = 0; i < taps; i++) {
+        device.click(x, y);
+        try {
+            Thread.sleep(intervalMs);
+        } catch (InterruptedException ignored) {}
+    }
     }
     // ---------------- PINCH ----------------
     private void doPinch() {
