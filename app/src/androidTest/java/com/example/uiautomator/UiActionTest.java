@@ -256,6 +256,10 @@ public class UiActionTest {
         } catch (InterruptedException ignored) {}
     }
 
+    private void humanTap(int x, int y, int holdMs) {
+        int steps = Math.max(2, holdMs / 16);
+        device.swipe(x, y, x, y, steps);
+    }
 
     // ---------------- TAP AND SWIPE ----------------
     private void tapAndSwipe() {
@@ -265,6 +269,7 @@ public class UiActionTest {
 
         // NEW: loop count
         int nLoop = parseInt(args.getString("n_loop"), 1);
+        int tapHoldMs = parseInt(args.getString("tap_hold"), 16);  // 16ms = 1 step - > shortest tap
 
         // Collect points
         List<android.graphics.Point> points = new ArrayList<>();
@@ -290,7 +295,8 @@ public class UiActionTest {
                 android.graphics.Point p2 = points.get(i + 1);
 
                 // Tap at Pi
-                device.click(p1.x, p1.y);
+                humanTap(p1.x, p1.y, tapHoldMs);
+                // device.click(p1.x, p1.y);
                 sleep(tapDelayMs);
 
                 // Swipe Pi -> P(i+1)
@@ -300,9 +306,9 @@ public class UiActionTest {
                 );
             }
 
-            // Final tap at last point
+            // Final tap
             android.graphics.Point last = points.get(points.size() - 1);
-            device.click(last.x, last.y);
+            humanTap(last.x, last.y, tapHoldMs);
             sleep(tapDelayMs);
         }
     }
