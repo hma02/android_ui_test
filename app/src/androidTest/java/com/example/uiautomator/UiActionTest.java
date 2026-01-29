@@ -269,7 +269,7 @@ public class UiActionTest {
 
         // NEW: loop count
         int nLoop = parseInt(args.getString("n_loop"), 1);
-        int tapHoldMs = parseInt(args.getString("tap_hold"), 16);  // 16ms = 1 step - > shortest tap
+        int tapHoldMs = parseInt(args.getString("tap_hold"), 32);  // 16ms = 1 step - > shortest tap
 
         // Collect points
         List<android.graphics.Point> points = new ArrayList<>();
