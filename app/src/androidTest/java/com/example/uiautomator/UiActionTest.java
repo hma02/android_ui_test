@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @RunWith(AndroidJUnit4.class)
 public class UiActionTest {
@@ -63,7 +64,7 @@ public class UiActionTest {
                 quickTapArea();
                 break;
             case "tap_and_swipe":
-                tapAndSwipe();
+                tapAndSwipeNew();
                 break;
 
             default:
@@ -90,28 +91,74 @@ public class UiActionTest {
             // ignore
         }
     }
-// ---------------- QUICK TAP ----------------
-    private void doQuickTap() {
-    int x = parseInt(args.getString("x"), -1);
-    int y = parseInt(args.getString("y"), -1);
 
-    if (x < 0 || y < 0) {
-        log("ERROR: x/y not provided for quick_tap");
-        return;
-    }
+    private void showToast(String message) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(() -> {
+            Toast.makeText(
+                    InstrumentationRegistry.getInstrumentation().getTargetContext(),
+                    message,
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
 
-    // NEW: number of taps (default = 8)
-    int taps = parseInt(args.getString("n"), 16);
-
-    int intervalMs = 250;         // 4 taps per second
-
-    for (int i = 0; i < taps; i++) {
-        device.click(x, y);
         try {
-            Thread.sleep(intervalMs);
+            Thread.sleep(1200);
         } catch (InterruptedException ignored) {}
     }
+
+// ---------------- QUICK TAP ----------------
+    // private void doQuickTap() {
+    // int x = parseInt(args.getString("x"), -1);
+    // int y = parseInt(args.getString("y"), -1);
+
+    // if (x < 0 || y < 0) {
+    //     log("ERROR: x/y not provided for quick_tap");
+    //     return;
+    // }
+
+    // // NEW: number of taps (default = 8)
+    // int taps = parseInt(args.getString("n"), 16);
+
+    // int intervalMs = 250;         // 4 taps per second
+
+    // for (int i = 0; i < taps; i++) {
+    //     device.click(x, y);
+    //     try {
+    //         Thread.sleep(intervalMs);
+    //     } catch (InterruptedException ignored) {}
+    // }
+    // }
+
+    private void doQuickTap() {
+        int x = parseInt(args.getString("x"), -1);
+        int y = parseInt(args.getString("y"), -1);
+
+        if (x < 0 || y < 0) {
+            log("ERROR: x/y not provided for quick_tap");
+            return;
+        }
+
+        int taps = parseInt(args.getString("n"), 16);
+        int intervalMs = 300;
+
+        Random rand = new Random();
+
+        for (int i = 0; i < taps; i++) {
+            int offsetX = rand.nextInt(5) - 2;  // -2 to +2
+            int offsetY = rand.nextInt(5) - 2;
+
+            // device.click(x + offsetX, y + offsetY);
+            device.swipe(x+ offsetX, y+ offsetY, x+ offsetX+1, y+ offsetY+1, 8);
+
+            try {
+                Thread.sleep(intervalMs);
+            } catch (InterruptedException ignored) {}
+        }
     }
+
+
+    
     // ---------------- PINCH ----------------
     private void doPinch() {
         String resId = args.getString("resId");
@@ -258,7 +305,7 @@ public class UiActionTest {
 
     private void humanTap(int x, int y, int holdMs) {
         int steps = Math.max(2, holdMs / 16);
-        device.swipe(x, y, x, y, steps);
+        device.swipe(x, y, x+1, y+2, steps);
     }
 
     // ---------------- TAP AND SWIPE ----------------
@@ -310,6 +357,155 @@ public class UiActionTest {
             android.graphics.Point last = points.get(points.size() - 1);
             humanTap(last.x, last.y, tapHoldMs);
             sleep(tapDelayMs);
+        }
+    }
+
+
+    private void tapAndSwipeOld() {
+
+        int duration = parseInt(args.getString("du"), 500);
+        int tapDelayMs = parseInt(args.getString("tap_delay"), 80);
+
+        int nLoop = parseInt(args.getString("n_loop"), 1);
+
+        // Samsung Note8: enforce minimum realistic hold
+        int tapHoldMs = Math.max(45, parseInt(args.getString("tap_hold"), 60));
+
+        List<android.graphics.Point> points = new ArrayList<>();
+        for (int i = 0; ; i++) {
+            int x = parseInt(args.getString("x" + i), -1);
+            int y = parseInt(args.getString("y" + i), -1);
+            if (x < 0 || y < 0) break;
+            points.add(new android.graphics.Point(x, y));
+        }
+
+        if (points.size() < 2) {
+            log("ERROR: tap_and_swipe requires at least 2 points");
+            return;
+        }
+
+        Random rand = new Random();
+
+        // More steps = more reliable on Samsung
+        int baseSteps = Math.max(8, duration / 40);
+
+        for (int loop = 0; loop < nLoop; loop++) {
+
+            for (int i = 0; i < points.size() - 1; i++) {
+
+                android.graphics.Point p1 = points.get(i);
+                android.graphics.Point p2 = points.get(i + 1);
+
+                // ---- TAP (with jitter) ----
+                int jitterX = rand.nextInt(5) - 2;   // -2 to +2
+                int jitterY = rand.nextInt(5) - 2;
+
+                int holdVar = rand.nextInt(20);      // +0–20ms variation
+
+                humanTap(
+                    p1.x + jitterX,
+                    p1.y + jitterY,
+                    tapHoldMs + holdVar
+                );
+
+                sleep(tapDelayMs + rand.nextInt(30));
+
+                // ---- SWIPE (with step jitter) ----
+                int steps = baseSteps + rand.nextInt(4);  // slight variation
+
+                device.swipe(
+                    new android.graphics.Point[]{
+                            new android.graphics.Point(p1.x, p1.y),
+                            new android.graphics.Point(p2.x, p2.y)
+                    },
+                    steps
+                );
+
+                sleep(60 + rand.nextInt(40));
+            }
+
+            // ---- FINAL TAP ----
+            android.graphics.Point last = points.get(points.size() - 1);
+
+            int jitterX = rand.nextInt(5) - 2;
+            int jitterY = rand.nextInt(5) - 2;
+
+            humanTap(
+                last.x + jitterX,
+                last.y + jitterY,
+                tapHoldMs + rand.nextInt(20)
+            );
+
+            sleep(tapDelayMs + rand.nextInt(30));
+        }
+    }
+
+    private void tapAndSwipeNew() {
+
+        int duration = parseInt(args.getString("du"), 500);
+        int baseSteps = Math.max(6, duration / 40);
+        int tapDelayMs = parseInt(args.getString("tap_delay"), 30);
+        int tapHoldMs = Math.max(45, parseInt(args.getString("tap_hold"), 100));
+        int nLoop = parseInt(args.getString("n_loop"), 1);
+
+        List<android.graphics.Point> points = new ArrayList<>();
+
+        // Collect points dynamically (x0/y0 = base)
+        for (int i = 0; ; i++) {
+            String xs = args.getString("x" + i);
+            String ys = args.getString("y" + i);
+            if (xs == null || ys == null) break;
+            points.add(new android.graphics.Point(
+                    Integer.parseInt(xs),
+                    Integer.parseInt(ys)
+            ));
+        }
+
+        if (points.size() < 3) {
+            showToast("ERROR: Need at least 3 points (1 base + 2 leaf points)");
+            return;
+        }
+
+        android.graphics.Point base = points.get(0);
+
+        // After base, remaining points must be groups of 2
+        int remaining = points.size() - 1;
+
+        if (remaining % 2 != 0) {
+            showToast("ERROR: Leaf points must be in groups of 2");
+            return;
+        }
+
+        Random rand = new Random();
+        int leafCount = remaining / 2;
+
+        for (int loop = 0; loop < nLoop; loop++) {
+            for (int l = 0; l < leafCount; l++) {
+
+                int idx = 1 + l * 2;
+
+                android.graphics.Point p1 = points.get(idx);   // left/side of leaf
+                android.graphics.Point tip = points.get(idx + 1); // tip of leaf
+
+                // ---- TAP at base ----
+                int jitterX = rand.nextInt(5) - 2;
+                int jitterY = rand.nextInt(5) - 2;
+                humanTap(base.x + jitterX, base.y + jitterY, tapHoldMs + rand.nextInt(10));
+                sleep(tapDelayMs + rand.nextInt(5));
+                humanTap(base.x + jitterX, base.y + jitterY, tapHoldMs + rand.nextInt(10));
+                sleep(tapDelayMs + rand.nextInt(5));
+                // ---- Curve Swipe (base → p1 → tip → base) ----
+                android.graphics.Point[] path = new android.graphics.Point[] {
+                        new android.graphics.Point(base.x, base.y),
+                        new android.graphics.Point(p1.x, p1.y),
+                        new android.graphics.Point(tip.x, tip.y),
+                        new android.graphics.Point(base.x, base.y)
+                };
+
+                device.swipe(path, baseSteps);
+
+                sleep(tapDelayMs + rand.nextInt(5));
+            }
         }
     }
 

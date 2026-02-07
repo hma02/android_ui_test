@@ -5,6 +5,36 @@ export ANDROID_SDK_ROOT=$HOME/android-sdk
 #./gradlew build --refresh-dependencies
 
 
+
+WRAPPER_JAR="gradle/wrapper/gradle-wrapper.jar"
+
+echo "Checking for Gradle wrapper..."
+
+if [ -f "$WRAPPER_JAR" ]; then
+    echo "✓ gradle-wrapper.jar exists."
+else
+    echo "✗ gradle-wrapper.jar NOT found."
+
+    # Check if gradle is installed
+    if ! command -v gradle >/dev/null 2>&1; then
+        echo "ERROR: 'gradle' is not installed."
+        echo "Install it first with:"
+        echo "  sudo apt install gradle"
+        exit 1
+    fi
+
+    echo "Running 'gradle wrapper' to regenerate wrapper..."
+    gradle wrapper
+
+    if [ -f "$WRAPPER_JAR" ]; then
+        echo "✓ Wrapper successfully regenerated."
+    else
+        echo "✗ Failed to generate gradle-wrapper.jar"
+        exit 1
+    fi
+fi
+
+
 ./gradlew clean :app:assembleDebug :app:assembleAndroidTest
 
 
