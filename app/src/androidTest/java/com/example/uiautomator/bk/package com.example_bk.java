@@ -24,6 +24,13 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+
 @RunWith(AndroidJUnit4.class)
 public class UiActionTest {
 
@@ -315,18 +322,56 @@ public class UiActionTest {
         device.swipe(x, y, x+1, y+2, steps);
     }
 
+    // private final ExecutorService tapExecutor1 =
+    //         Executors.newSingleThreadExecutor();
+
+    // private final ExecutorService tapExecutor2 =
+    //         Executors.newSingleThreadExecutor();
+
+    private final ThreadPoolExecutor tapExecutor1 = new ThreadPoolExecutor(
+            1, 1,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>()
+    );
+    private final ThreadPoolExecutor tapExecutor2 = new ThreadPoolExecutor(
+            1, 1,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>()
+    );
+    private volatile boolean useFirstExecutor = true;
+
     private void runAsyncHumanTap(int x, int y, int swipeDuration) {
-        new Thread(() -> {
+
+        ExecutorService executor;
+
+        if (tapExecutor1.getQueue().size() > 5 ||
+            tapExecutor2.getQueue().size() > 5) {
+            return; // drop this tap only
+        }
+
+        // Alternate executor
+        if (useFirstExecutor) {
+            executor = tapExecutor1;
+        } else {
+            executor = tapExecutor2;
+        }
+
+        useFirstExecutor = !useFirstExecutor;
+
+        executor.submit(() -> {
             try {
-               
-                // small offset to mimic human variation
-                // int swipeDuration=200;
                 int endX = x + 3;
                 int endY = y + 3;
-                String cmd = String.format("input swipe %d %d %d %d %d", x, y, endX, endY, swipeDuration);
+
+                String cmd = String.format(
+                        "input swipe %d %d %d %d %d",
+                        x, y, endX, endY, swipeDuration
+                );
+
                 device.executeShellCommand(cmd);
+
             } catch (Exception ignored) {}
-        }).start();
+        });
     }
 
     // private void runAsyncSwipe(android.graphics.Point[] path, int steps) {
@@ -339,74 +384,74 @@ public class UiActionTest {
 
     // ---------------- TAP AND SWIPE ----------------
 
-    private void tapAndSwipeNew() {
+    // private void tapAndSwipeNew() {
 
-        int duration = parseInt(args.getString("du"), 500);
-        int baseSteps = Math.max(6, duration / 40);
-        int tapDelayMs = parseInt(args.getString("tap_delay"), 30);
-        int tapHoldMs = Math.max(45, parseInt(args.getString("tap_hold"), 100));
-        int nLoop = parseInt(args.getString("n_loop"), 1);
+    //     int duration = parseInt(args.getString("du"), 500);
+    //     int baseSteps = Math.max(6, duration / 40);
+    //     int tapDelayMs = parseInt(args.getString("tap_delay"), 30);
+    //     int tapHoldMs = Math.max(45, parseInt(args.getString("tap_hold"), 100));
+    //     int nLoop = parseInt(args.getString("n_loop"), 1);
 
-        List<android.graphics.Point> points = new ArrayList<>();
+    //     List<android.graphics.Point> points = new ArrayList<>();
 
-        // Collect points dynamically (x0/y0 = base)
-        for (int i = 0; ; i++) {
-            String xs = args.getString("x" + i);
-            String ys = args.getString("y" + i);
-            if (xs == null || ys == null) break;
-            points.add(new android.graphics.Point(
-                    Integer.parseInt(xs),
-                    Integer.parseInt(ys)
-            ));
-        }
+    //     // Collect points dynamically (x0/y0 = base)
+    //     for (int i = 0; ; i++) {
+    //         String xs = args.getString("x" + i);
+    //         String ys = args.getString("y" + i);
+    //         if (xs == null || ys == null) break;
+    //         points.add(new android.graphics.Point(
+    //                 Integer.parseInt(xs),
+    //                 Integer.parseInt(ys)
+    //         ));
+    //     }
 
-        if (points.size() < 3) {
-            showToast("ERROR: Need at least 3 points (1 base + 2 leaf points)");
-            return;
-        }
+    //     if (points.size() < 3) {
+    //         showToast("ERROR: Need at least 3 points (1 base + 2 leaf points)");
+    //         return;
+    //     }
 
-        android.graphics.Point base = points.get(0);
+    //     android.graphics.Point base = points.get(0);
 
-        // After base, remaining points must be groups of 2
-        int remaining = points.size() - 1;
+    //     // After base, remaining points must be groups of 2
+    //     int remaining = points.size() - 1;
 
-        if (remaining % 2 != 0) {
-            showToast("ERROR: Leaf points must be in groups of 2");
-            return;
-        }
+    //     if (remaining % 2 != 0) {
+    //         showToast("ERROR: Leaf points must be in groups of 2");
+    //         return;
+    //     }
 
-        Random rand = new Random();
-        int leafCount = remaining / 2;
+    //     Random rand = new Random();
+    //     int leafCount = remaining / 2;
 
-        for (int loop = 0; loop < nLoop; loop++) {
-            for (int l = 0; l < leafCount; l++) {
+    //     for (int loop = 0; loop < nLoop; loop++) {
+    //         for (int l = 0; l < leafCount; l++) {
 
-                int idx = 1 + l * 2;
+    //             int idx = 1 + l * 2;
 
-                android.graphics.Point p1 = points.get(idx);   // left/side of leaf
-                android.graphics.Point tip = points.get(idx + 1); // tip of leaf
+    //             android.graphics.Point p1 = points.get(idx);   // left/side of leaf
+    //             android.graphics.Point tip = points.get(idx + 1); // tip of leaf
 
-                // ---- TAP at base ----
-                int jitterX = rand.nextInt(5) - 2;
-                int jitterY = rand.nextInt(5) - 2;
-                humanTap(base.x + jitterX, base.y + jitterY, tapHoldMs + rand.nextInt(10));
-                sleep(tapDelayMs + rand.nextInt(5));
-                humanTap(base.x + jitterX, base.y + jitterY, tapHoldMs + rand.nextInt(10));
-                sleep(tapDelayMs + rand.nextInt(5));
-                // ---- Curve Swipe (base → p1 → tip → base) ----
-                android.graphics.Point[] path = new android.graphics.Point[] {
-                        new android.graphics.Point(base.x, base.y),
-                        new android.graphics.Point(p1.x, p1.y),
-                        new android.graphics.Point(tip.x, tip.y),
-                        new android.graphics.Point(base.x, base.y)
-                };
+    //             // ---- TAP at base ----
+    //             int jitterX = rand.nextInt(5) - 2;
+    //             int jitterY = rand.nextInt(5) - 2;
+    //             humanTap(base.x + jitterX, base.y + jitterY, tapHoldMs + rand.nextInt(10));
+    //             sleep(tapDelayMs + rand.nextInt(5));
+    //             humanTap(base.x + jitterX, base.y + jitterY, tapHoldMs + rand.nextInt(10));
+    //             sleep(tapDelayMs + rand.nextInt(5));
+    //             // ---- Curve Swipe (base → p1 → tip → base) ----
+    //             android.graphics.Point[] path = new android.graphics.Point[] {
+    //                     new android.graphics.Point(base.x, base.y),
+    //                     new android.graphics.Point(p1.x, p1.y),
+    //                     new android.graphics.Point(tip.x, tip.y),
+    //                     new android.graphics.Point(base.x, base.y)
+    //             };
 
-                device.swipe(path, baseSteps);
+    //             device.swipe(path, baseSteps);
 
-                sleep(tapDelayMs + rand.nextInt(5));
-            }
-        }
-    }
+    //             sleep(tapDelayMs + rand.nextInt(5));
+    //         }
+    //     }
+    // }
 
     // private Thread tapThread;
     // private boolean shouldStop = false;
@@ -479,12 +524,79 @@ public class UiActionTest {
         // tapThread.start();
     }
 
+
+    private void tapAndSwipeNew() {
+
+        int tapDelayMs = parseInt(args.getString("tap_delay"), 150);
+        int tapHoldMs = Math.max(45, parseInt(args.getString("tap_hold"), 200));
+
+        List<android.graphics.Point> points = new ArrayList<>();
+
+        // Collect points dynamically
+        for (int i = 0; ; i++) {
+            String xs = args.getString("x" + i);
+            String ys = args.getString("y" + i);
+            if (xs == null || ys == null) break;
+            points.add(new android.graphics.Point(
+                    Integer.parseInt(xs),
+                    Integer.parseInt(ys)
+            ));
+        }
+
+        if (points.size() < 3) {
+            showToast("ERROR: Need at least 3 points (1 base + 2 leaf points)");
+            return;
+        }
+
+        android.graphics.Point base = points.get(0);
+        int remaining = points.size() - 1;
+        if (remaining % 2 != 0) {
+            showToast("ERROR: Leaf points must be in groups of 2");
+            return;
+        }
+
+        Random rand = new Random();
+        int leafCount = remaining / 2;
+
+        shouldStop = false;
+        long startTime = System.currentTimeMillis();
+        long durationMs = 60_000; // 1 minute
+
+        while (!shouldStop &&
+            (System.currentTimeMillis() - startTime) < durationMs) {
+
+            for (int l = 0; l < leafCount; l++) {
+
+                if (shouldStop) break;
+
+                int idx = 1 + l * 2;
+                android.graphics.Point p1 = points.get(idx);
+                android.graphics.Point tip = points.get(idx + 1);
+
+                // Tap each point asynchronously with small jitter
+                int offsetX = rand.nextInt(3) - 1;
+                int offsetY = rand.nextInt(3) - 1;
+                runAsyncHumanTap(tip.x + offsetX, tip.y + offsetY, tapHoldMs + rand.nextInt(2));
+                sleep(tapDelayMs);
+                offsetX = rand.nextInt(3) - 1;
+                offsetY = rand.nextInt(3) - 1;
+                runAsyncHumanTap(base.x + offsetX, base.y + offsetY, tapHoldMs + rand.nextInt(2));
+                sleep(tapDelayMs + rand.nextInt(10));
+            }
+        }
+
+        log("tapAndSwipeNew stopped");
+
+        // tapExecutor1.shutdownNow();
+        // tapExecutor2.shutdownNow();
+    }
+
     // private void tapAndSwipeNew() {
 
     //     int duration = parseInt(args.getString("du"), 650);
-    //     int baseSteps = 7; //Math.max(6, duration / 40);
-    //     int tapDelayMs = parseInt(args.getString("tap_delay"), 150);
-    //     int tapHoldMs = Math.max(45, parseInt(args.getString("tap_hold"), 200));
+    //     int baseSteps = 9; //Math.max(6, duration / 40);
+    //     int tapDelayMs = parseInt(args.getString("tap_delay"), 300);
+    //     int tapHoldMs = Math.max(45, parseInt(args.getString("tap_hold"), 300));
 
     //     List<android.graphics.Point> points = new ArrayList<>();
 
@@ -543,8 +655,6 @@ public class UiActionTest {
     //             // ---- Curve Swipe asynchronously (base → p1 → tip → base) ----
     //             android.graphics.Point[] path = new android.graphics.Point[]{
     //                     new android.graphics.Point(base.x, base.y),
-    //                     new android.graphics.Point(base.x+1, base.y+1),
-    //                     new android.graphics.Point(base.x+2, base.y+2),
     //                     new android.graphics.Point(p1.x, p1.y),
     //                     new android.graphics.Point(tip.x, tip.y),
     //                     new android.graphics.Point(tip.x, tip.y),
@@ -577,7 +687,3 @@ public class UiActionTest {
         System.out.println(msg);
     }
 }
-
-
-//TODO: quick tap use thread
-//TODO: tap and swipe improve
