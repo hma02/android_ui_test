@@ -167,7 +167,7 @@ public class UiActionTest {
 
         boolean useSecondPoint = (x2 >= 0 && y2 >= 0);
         int intervalMs = 150;
-        long durationMs = 60_000;
+        long durationMs = 120_000;
         long startTime = System.currentTimeMillis();
         Random rand = new Random();
         boolean toggle = false;
@@ -215,7 +215,7 @@ public class UiActionTest {
         }
 
         int intervalMs = parseInt(args.getString("tap_delay"), 80);
-        long durationMs = 60_000;
+        long durationMs = 150_000;
         long startTime = System.currentTimeMillis();
         Random rand = new Random();
 
