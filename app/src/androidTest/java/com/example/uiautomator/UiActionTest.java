@@ -158,7 +158,7 @@ public class UiActionTest {
         int y1 = parseInt(args.getString("y"), -1);
         int x2 = parseInt(args.getString("x2"), -1);
         int y2 = parseInt(args.getString("y2"), -1);
-
+        int duration = parseInt(args.getString("duration"), 120);
         if (x1 < 0 || y1 < 0) {
             log("ERROR: x/y not provided for quick_tap");
             isRunning[procIndex] = false;
@@ -167,7 +167,7 @@ public class UiActionTest {
 
         boolean useSecondPoint = (x2 >= 0 && y2 >= 0);
         int intervalMs = 150;
-        long durationMs = 120_000;
+        long durationMs = duration * 1_000;
         long startTime = System.currentTimeMillis();
         Random rand = new Random();
         boolean toggle = false;
