@@ -55,6 +55,9 @@ public class UiActionTest {
             case "quick_tap":
                 doQuickTap(procIndex);
                 break;
+            case "tap_swipe":
+                doTapSwipe(procIndex);
+                break;
             case "quick_tap_area":
                 quickTapAreaNew(procIndex);
                 break;
@@ -173,6 +176,56 @@ public class UiActionTest {
         boolean toggle = false;
 
         while (!shouldStop[procIndex] && (System.currentTimeMillis() - startTime) < durationMs) {
+            int baseX = x1;
+            int baseY = y1;
+            if (useSecondPoint && toggle) {
+                baseX = x2;
+                baseY = y2;
+            }
+            toggle = !toggle;
+
+            int offsetX = rand.nextInt(5) - 2;
+            int offsetY = rand.nextInt(5) - 2;
+            device.swipe(baseX + offsetX, baseY + offsetY, baseX + offsetX + 1, baseY + offsetY + 1, 8);
+            sleep(intervalMs);
+        }
+
+        isRunning[procIndex] = false;
+        showToast("quickTap stopped" + procIndex);
+    }
+
+    private void doTapSwipe(int procIndex) {
+        if (isRunning[procIndex]) {
+            log("quickTap already running for proc_index=" + procIndex);
+            return;
+        }
+        isRunning[procIndex] = true;
+        shouldStop[procIndex] = false;
+
+        int x1 = parseInt(args.getString("x"), -1);
+        int y1 = parseInt(args.getString("y"), -1);
+        int x2 = parseInt(args.getString("x2"), -1);
+        int y2 = parseInt(args.getString("y2"), -1);
+        int duration = parseInt(args.getString("duration"), 120);
+        if (x1 < 0 || y1 < 0) {
+            log("ERROR: x/y not provided for quick_tap");
+            isRunning[procIndex] = false;
+            return;
+        }
+
+        boolean useSecondPoint = (x2 >= 0 && y2 >= 0);
+        int intervalMs = 150;
+        long durationMs = duration * 1_000;
+        long startTime = System.currentTimeMillis();
+        Random rand = new Random();
+        boolean toggle = false;
+
+        while (!shouldStop[procIndex] && (System.currentTimeMillis() - startTime) < durationMs) {
+            
+            // 🔥 NEW: horizontal swipe before tap
+            device.swipe(50, 1000, 720, 1000, 30);  // duration steps ~50 (~500ms feel)
+
+
             int baseX = x1;
             int baseY = y1;
             if (useSecondPoint && toggle) {
