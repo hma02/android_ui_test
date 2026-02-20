@@ -268,16 +268,20 @@ public class UiActionTest {
         }
 
         int intervalMs = parseInt(args.getString("tap_delay"), 80);
-        long durationMs = 150_000;
+        long duration = parseInt(args.getString("duration"), 150);
+        long durationMs = duration * 1000;
         long startTime = System.currentTimeMillis();
         Random rand = new Random();
 
+        // ✅ NEW: calculate steps dynamically
+        int steps = (int)(8.0 * 9 / points.size());
+        
         while (!shouldStop[procIndex] && (System.currentTimeMillis() - startTime) < durationMs) {
             for (android.graphics.Point p : points) {
                 if (shouldStop[procIndex]) break;
                 int offsetX = rand.nextInt(5) - 2;
                 int offsetY = rand.nextInt(5) - 2;
-                device.swipe(p.x + offsetX, p.y + offsetY, p.x + offsetX + 1, p.y + offsetY + 1, 8);
+                device.swipe(p.x + offsetX, p.y + offsetY, p.x + offsetX + 1, p.y + offsetY + 1, steps);
                 sleep(intervalMs);
             }
         }
