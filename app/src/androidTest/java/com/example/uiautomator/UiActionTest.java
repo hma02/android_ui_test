@@ -196,7 +196,7 @@ public class UiActionTest {
 
     private void doTapSwipe(int procIndex) {
         if (isRunning[procIndex]) {
-            log("quickTap already running for proc_index=" + procIndex);
+            showToast("quickTap already running=" + procIndex);
             return;
         }
         isRunning[procIndex] = true;
@@ -247,7 +247,7 @@ public class UiActionTest {
     // ---------------- QUICK TAP AREA ----------------
     private void quickTapAreaNew(int procIndex) {
         if (isRunning[procIndex]) {
-            log("quickTapArea already running for proc_index=" + procIndex);
+            showToast("quickTapArea already running=" + procIndex);
             return;
         }
         isRunning[procIndex] = true;
