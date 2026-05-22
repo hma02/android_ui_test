@@ -212,6 +212,7 @@ public class UiActionTest {
             isRunning[procIndex] = false;
             return;
         }
+        int repeat = parseInt(args.getString("tap_repeat"), 2);
 
         boolean useSecondPoint = (x2 >= 0 && y2 >= 0);
         int intervalMs = 150;
@@ -225,19 +226,33 @@ public class UiActionTest {
             // 🔥 NEW: horizontal swipe before tap
             device.swipe(50, 1000, 720, 1000, 30);  // duration steps ~50 (~500ms feel)
 
+            // NEW LOOP
+            for (int i = 0; i < repeat; i++) {
+                int baseX = x1;
+                int baseY = y1;
+                if (useSecondPoint && toggle) {
+                    baseX = x2;
+                    baseY = y2;
+                }
+                toggle = !toggle;
 
-            int baseX = x1;
-            int baseY = y1;
-            if (useSecondPoint && toggle) {
-                baseX = x2;
-                baseY = y2;
+                int offsetX = rand.nextInt(5) - 2;
+                int offsetY = rand.nextInt(5) - 2;
+                device.swipe(baseX + offsetX, baseY + offsetY, baseX + offsetX + 1, baseY + offsetY + 1, 8);
+                // optional early stop
+                if (shouldStop[procIndex]) {
+                    break;
+                }
+
+                sleep(intervalMs);
+
+                // optional early stop
+                if (shouldStop[procIndex]) {
+                    break;
+                }
             }
-            toggle = !toggle;
 
-            int offsetX = rand.nextInt(5) - 2;
-            int offsetY = rand.nextInt(5) - 2;
-            device.swipe(baseX + offsetX, baseY + offsetY, baseX + offsetX + 1, baseY + offsetY + 1, 8);
-            sleep(intervalMs);
+
         }
 
         isRunning[procIndex] = false;
