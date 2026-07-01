@@ -61,7 +61,7 @@ if [[ "$SHORT" == "true" ]]; then
     X4=$STARTX ; Y4=$STARTY
     X5=$STARTX ; Y5=$STARTY
     X6=$STARTX ; Y6=$STARTY
-    X7=320     ; Y7=500
+    X7=270     ; Y7=550
 else
     echo "[INFO] Using NORMAL swipe pattern"
 
