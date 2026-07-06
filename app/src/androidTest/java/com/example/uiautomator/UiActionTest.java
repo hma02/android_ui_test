@@ -252,7 +252,7 @@ public class UiActionTest {
                 }
             }
 
-            if repeat == 0 && !shouldStop[procIndex]) {
+            if (repeat == 0 && !shouldStop[procIndex]) {
                 sleep(500);
             }
 
