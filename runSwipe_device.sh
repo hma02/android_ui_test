@@ -29,6 +29,10 @@ for arg in "$@"; do
             DEVICE_KEY="device3"
             DEVICE="192.168.1.220:5555"
             ;;
+        device4)
+            DEVICE_KEY="device4"
+            DEVICE="192.168.1.221:5555"
+            ;;
         left|right)
             DIRECTION="$arg"
             ;;

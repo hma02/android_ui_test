@@ -47,6 +47,9 @@ fi
 /usr/bin/adb -s 192.168.1.220:5555 install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 /usr/bin/adb -s 192.168.1.220:5555 install -r app/build/outputs/apk/debug/app-debug.apk
 
+/usr/bin/adb -s 192.168.1.221:5555 install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+/usr/bin/adb -s 192.168.1.221:5555 install -r app/build/outputs/apk/debug/app-debug.apk
+
 
 
 export ANDROID_SDK_ROOT=/usr/lib/android-sdk
