@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -82,12 +83,19 @@ public class UiActionTest {
     // ---------------- TOAST ----------------
     private void showToast() {
         final String text = args.getString("text", "Hello!");
+        Log.d("UiActionTest", "ABOUT TO SHOW TOAST: " + text);
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(() -> Toast.makeText(
                 InstrumentationRegistry.getInstrumentation().getTargetContext(),
                 text,
                 Toast.LENGTH_SHORT
         ).show());
+        handler.post(() -> Toast.makeText(
+                InstrumentationRegistry.getInstrumentation().getContext(),
+                text,
+                Toast.LENGTH_SHORT
+        ).show());
+        Log.d("UiActionTest", "TOAST.show() CALLED");
         sleep(1200);
     }
 
