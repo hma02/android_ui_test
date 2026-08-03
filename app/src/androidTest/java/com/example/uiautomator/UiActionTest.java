@@ -90,11 +90,11 @@ public class UiActionTest {
                 text,
                 Toast.LENGTH_SHORT
         ).show());
-        handler.post(() -> Toast.makeText(
-                InstrumentationRegistry.getInstrumentation().getContext(),
-                text,
-                Toast.LENGTH_SHORT
-        ).show());
+        // handler.post(() -> Toast.makeText(
+        //         InstrumentationRegistry.getInstrumentation().getContext(),
+        //         text,
+        //         Toast.LENGTH_SHORT
+        // ).show());
         Log.d("UiActionTest", "TOAST.show() CALLED");
         sleep(1200);
     }
