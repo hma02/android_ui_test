@@ -4,6 +4,7 @@ export ANDROID_SDK_ROOT=$HOME/android-sdk
 #rm -rf ~/.gradle/caches/
 #./gradlew build --refresh-dependencies
 
+# Note: since nanopi-m6 is a arm64 device, so during apk build, the AAPT2 binary is specially prepared and suggested to use below config in gradle.properties:  android.aapt2FromMavenOverride=/home/pi/software/apktool/aapt2
 
 
 WRAPPER_JAR="gradle/wrapper/gradle-wrapper.jar"
