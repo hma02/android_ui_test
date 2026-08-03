@@ -2,5 +2,9 @@
 *.lock
 *.properties
 app/build/**
-gradle/**
+
 .gradle/**
+
+
+!gradle.properties
+
